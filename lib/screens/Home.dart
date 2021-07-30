@@ -1,7 +1,6 @@
 import "package:flutter/material.dart";
 import 'package:quarantine_dex/screens/DexSetup.dart';
 import 'package:quarantine_dex/screens/DexTracker.dart';
-import 'package:quarantine_dex/screens/About.dart';
 import 'package:quarantine_dex/tools/util.dart';
 import "package:quarantine_dex/tools/AppDB.dart";
 import "package:quarantine_dex/tools/DexHeader.dart";
@@ -143,6 +142,7 @@ class _HomeState extends State<Home> {
                       icon: Icon(Icons.edit),
                       onPressed: () {
                         //TODO functionality
+                        AppDB().testDB();
                       },
                     ),
 
@@ -211,6 +211,7 @@ class _HomeState extends State<Home> {
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
+                // TODO add links to credits
                 Text("This is a project I started while unemployed on COVID lockdown.  I constantly have several living dexes going at any time across several Pokémon games, and I wanted to have one central place to keep track of them."),
                 Text(""),
                 Text("All gen 1-5 sprites ripped from Pokémon BW by Veekun"),

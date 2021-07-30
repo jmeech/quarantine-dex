@@ -48,3 +48,9 @@ CREATE TABLE IF NOT EXISTS forms(
 	form_name	VARCHAR(40),
 	FOREIGN KEY(id) REFERENCES pkmn(id)
 );
+
+CREATE TABLE IF NOT EXISTS types(
+	id 			INTEGER,
+	slot_1 		INTEGER,
+	slot_2 		INTEGER
+);

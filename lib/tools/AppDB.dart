@@ -47,10 +47,16 @@ class AppDB {
     var _dbPath = await getDatabasesPath();
     var _path = join(_dbPath, "app.db");
 
-    var exists = await databaseExists(_path);
-    var debug = false; //true;
+    var debug = true;
 
-    if(!exists || debug) {
+    if(debug) {
+      await ((await openDatabase(_path)).close());
+      await deleteDatabase(_path);
+    }
+
+    var exists = await databaseExists(_path);
+
+    if(!exists) {
 
       print("No database found, initializing...");
 
@@ -58,6 +64,7 @@ class AppDB {
       try {
         await Directory(dirname(_path)).create(recursive: true);
       } catch (_) {}
+
 
       // delete existing db, easier to make changes
       await deleteDatabase(_path);
@@ -120,6 +127,8 @@ class AppDB {
         dexNum ASC
       '''
     );
+
+    //print(_list[_list.length]);
 
     return List.generate(_list.length, (i) {
       return Pokemon.fromMap(_list[i]);
@@ -224,6 +233,41 @@ class AppDB {
       whereArgs: [id]
     );
     return getDexEntryList();
+  }
+
+  // *********
+  // * DEBUG *
+  // *********
+
+  void testDB() async {
+    List<Map<String, dynamic>> _test = await _db.rawQuery(
+        '''
+        SELECT
+          *
+        FROM
+          types
+        WHERE
+          id = 891
+      '''
+        /*
+      SELECT
+        pkmn.name,
+        pkmn.id,
+        types.slot_1,
+        types.slot_2
+      FROM
+        pkmn
+      INNER JOIN
+        types
+      ON
+        pkmn.id = types.id
+      WHERE
+        pkmn.id = 891
+      '''
+
+         */
+    );
+    print(_test.toString());
   }
 
 }
