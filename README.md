@@ -12,10 +12,10 @@ This project already has the following functionality included:
 - Create/delete multiple persistent living dex trackers
 - Select between National dex and various regional dexes
 - Select between normal dex and shiny dex
+- Form tracker for full living form dexes, includes exception for Alcremies
 
 #### To add
 
-- Form tracker for full living form dexes
 - Choose between grid and list view
 
 #### Credits:
