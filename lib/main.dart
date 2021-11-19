@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:quarantine_dex/tools/util.dart';
 import "package:quarantine_dex/screens/Home.dart";
-import 'package:quarantine_dex/tools/AppDB.dart';
 
 void main() {
   runApp(DexApp());
@@ -12,12 +12,10 @@ class DexApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
-    AppDB().initDB();
-
     return MaterialApp(
       title: 'Quarantine Dex',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: themeColor,
       ),
       home: Home(title: "Quarantine Dex"),
     );

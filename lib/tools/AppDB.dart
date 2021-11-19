@@ -1,8 +1,6 @@
 import 'dart:io';
-import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:quarantine_dex/tools/DexHeader.dart';
 import 'package:quarantine_dex/tools/Pokemon.dart';
 import 'package:quarantine_dex/tools/util.dart';
@@ -19,12 +17,6 @@ class AppDB {
     return _instance;
   }
 
-  Future<File> _localFile(String filename) async {
-    final directory = await getApplicationDocumentsDirectory();
-    final path = await directory.path;
-    return File('$path/$filename');
-  }
-
   // Provide single point of entry to DB
   static Database _db;
   Future<Database> get database async {
@@ -34,7 +26,7 @@ class AppDB {
   }
 
   // Initialize DB
-  initDB() async {
+  Future<dynamic> initDB() async {
 
     // construct path
     var _dbPath = await getDatabasesPath();
@@ -71,6 +63,7 @@ class AppDB {
     } else {
       print("Database found, loading...");
     }
+
     _db = await openDatabase(_path);
   }
 
@@ -78,24 +71,18 @@ class AppDB {
   // * READ *
   // ********
 
-  // Read a single pokemon by number
-  // TODO create pokemon object and replace
-  Future<String> getPkmn(int id) async {
-
-    // final db = await database;
-    final List<Map<String, dynamic>> _list = await _db.query(
-      'pkmn',
-      columns: ['pkmn'],
-      where: 'id = ?',
-      whereArgs: [id]
-    );
-
-    return _list[0]['pkmn'];
-  }
-
-  // Read the DB for a list of pokemon determined by a given dex order
+  /**
+   * Reads the app database for a list of Pokemon determined by a particular dex
+   *
+   * @param   dex     The dex being returned
+   * @param   forms   Whether or not to include alternate forms
+   * @param   shiny   Whether or not the desired list should be shiny or not.
+   *                  Important when applying exceptions.
+   * @return          A list of Pokemon objects
+   */
   Future<List<Pokemon>> getPkmnList(Dex dex, bool forms, bool shiny) async {
 
+    // Raw database query
     final List<Map<String, dynamic>> _list = await _db.rawQuery(
       '''
       SELECT
@@ -120,9 +107,10 @@ class AppDB {
 
     );
 
-    //print(_list[_list.length]);
+    // Programmatically build dex to account for exceptions
     List<Pokemon> _pokedex = [];
 
+    // TODO Exceptions, Spiky-eared pichu, Fairy type Arceus, Gen 7 Minior etc
     _list.forEach((Map pkmn) {
       if (!shiny || !nonShinyAlcremies.contains(pkmn['id']))
         _pokedex.add(Pokemon.fromMap(pkmn));
@@ -131,143 +119,71 @@ class AppDB {
     return _pokedex;
   }
 
-  Future<List<int>> getTypes(int id) async {
-    final List<Map<String, dynamic>> _list = await _db.query(
-      'pkmn',
-      columns: ['type_1', 'type_2'],
-      where: 'id = ?',
-      whereArgs: [id]
-    );
-    return [_list[0]['type_1'], _list[0]['type_2']];
-  }
-
-  // Get the last dex, used to return newly created dexes
-  Future<DexHeader> getDexEntry() async {
-    final List<Map<String, dynamic>> _list = await _db.rawQuery(
-      '''
-      SELECT
-        *
-      FROM
-        dex_list
-      WHERE
-        id=(
-          SELECT
-            MAX(id)
-           FROM
-            dex_list
-        )
-      '''
-    );
-    return(DexHeader.fromMap(_list.first));
-  }
-
-  // Read the list of dexes
-  Future<List<DexHeader>> getDexEntryList() async {
-    final List<Map<String, dynamic>> dexes = await _db.query('dex_list');
+  /**
+   * Returns the list of currently tracked dexes
+   * @return    The list of currently tracked dexes
+   */
+  Future<List<DexHeader>> getAllTracked() async {
+    final List<Map<String, dynamic>> dexes = await _db.query('tracking');
 
     return List.generate(dexes.length, (i) {
-      return DexHeader(
-          id:     dexes[i]['id'],
-          dex:    dexFromIndex(dexes[i]['dex']),
-          name:   dexes[i]['name'],
-          shiny:  dexes[i]['shiny'] == 1,
-          forms:  dexes[i]['forms'] == 1
-      );
+      return DexHeader.fromMap(dexes[i]);
     });
   }
 
-  // Gets the list of found pokemon
-  Future<List<int>> loadSaved(int id) async {
-    final _file = await _localFile('${id.toString()}.txt');
+  // *********
+  // * WRITE *
+  // *********
 
-    // If file exists
-    if(await _file.exists()) {
-      print('Found file');
-      String contents = await _file.readAsString();
-      print(contents);
-      return List<int>.from(JsonDecoder().convert(contents));
-    }
-    print('Did not find file');
-    return [];
+  /**
+   * Inserts a new tracked dex to the list of tracked dexes.  Assigns the
+   *  dex an ID during the write process.
+   *
+   * @param   toInsert  The new dex to write to the DB
+   * @return            The new dex after being assigned an id
+   */
+  void addDexEntry(DexHeader _toInsert) async {
+    await _db.insert(
+        'tracking',
+        _toInsert.toMap()
+    );
   }
 
-  // Writes the list of saved pokemon to storage
-  Future<void> writeSaved(int id, List<int> values) async {
-    print('Attempting write...');
-
-    final file = await _localFile('${id.toString()}.txt');
-
-    if(! await file.exists()) {
-      print('File not found');
-      await file.create(recursive: true);
-    }
-
-    final objectString = JsonEncoder().convert(values);
-    return file.writeAsString(objectString);
-  }
-
-  // **********
-  // * INSERT *
-  // **********
-
-  // Add a new dex to the list of dexes
-  Future<DexHeader> addDexEntry(DexHeader _toInsert) async {
-    await _db.insert('dex_list', _toInsert.toMap());
-    return getDexEntry();
-  }
-
-  Future<DexHeader> updateDexEntry(DexHeader _toUpdate) async {
-    await _db.update('dex_list',
-                      _toUpdate.toMap(),
-                      where: 'id = ?',
-                      whereArgs: [_toUpdate.id]);
-    return _toUpdate;
+  /**
+   * Update an existing tracked dex in the list of tracked dexes.
+   *
+   * @param   toUpdate  The dex to be updated
+   * @return            The updated Dex
+   */
+  void updateDexEntry(DexHeader _toUpdate) async {
+    await _db.update(
+        'tracking',
+        _toUpdate.toMap(),
+        where: 'id = ?',
+        whereArgs: [_toUpdate.id]
+    );
   }
 
   // **********
   // * DELETE *
   // **********
 
-  Future<List<DexHeader>> deleteDexEntry(int id) async {
-    final file = await _localFile('${id.toString()}.txt');
-    file.delete();
-
+  /**
+   * Removes a tracked dex from the list of tracked dexes.
+   *
+   * @param   id  The ID of the tracked dex to be deleted
+   * @return      The new list of tracked dexes
+   */
+  void deleteDexEntry(int id) async {
     await _db.delete(
-      'dex_list',
-      where: 'id = ?',
-      whereArgs: [id]
+        'tracking',
+        where: 'id = ?',
+        whereArgs: [id]
     );
-    return getDexEntryList();
   }
 
   // *********
   // * DEBUG *
   // *********
-
-  void testDB() async {
-    List<Map<String, dynamic>> _test = await _db.rawQuery(
-        '''
-      SELECT
-        pkmn.name,
-        pkmn.id,
-        dex_entries.dex_NAT AS dexNum,
-        types.slot_1,
-        types.slot_2
-      FROM
-        pkmn
-      INNER JOIN
-        dex_entries
-      ON
-        pkmn.id = dex_entries.dex_NAT
-      INNER JOIN
-        types
-      ON
-        pkmn.id = types.id
-      WHERE
-        pkmn.id = 891
-      '''
-    );
-    print(_test.toString());
-  }
 
 }

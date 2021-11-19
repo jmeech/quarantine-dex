@@ -6,7 +6,7 @@ import 'package:quarantine_dex/tools/DexHeader.dart';
 
 class DexTracker extends StatefulWidget {
 
-  DexHeader header;
+  final DexHeader header;
 
   DexTracker(
     this.header,
@@ -32,12 +32,7 @@ class _DexTrackerState extends State<DexTracker> {
     AppDB().getPkmnList(_header.dex, _header.forms, _header.shiny).then((value) {
       setState(() {
         _pokedex = value;
-      });
-    });
-
-    AppDB().loadSaved(_header.id).then((values) {
-      setState(() {
-        _savedPkmn.addAll(values);
+        _savedPkmn.addAll(_header.data);
       });
     });
   }
@@ -45,23 +40,29 @@ class _DexTrackerState extends State<DexTracker> {
   @override
   Widget build(BuildContext context) {
 
+    // Calculate completion
     _percentComplete = _pokedex.length != 0 ? _savedPkmn.length / _pokedex.length : 0;
 
+    // Will pop scope allows auto write when the page is navigated from
     return WillPopScope(
       onWillPop: () async {
-        AppDB().writeSaved(_header.id, _savedPkmn);
+        _header.data = _savedPkmn;
+        await AppDB().updateDexEntry(_header);
         return true;
       },
       child: Scaffold(
 
+        // Top bar
         appBar: AppBar(
           title: Text(_header.name),
         ),
 
+        // Main content
         body: Column(
 
           children: [
 
+            // Percentage tracker
             Text(
               '${(_percentComplete * 100).round()}% complete',
             ),
@@ -103,13 +104,15 @@ class _DexTrackerState extends State<DexTracker> {
       child: Stack(
         children: [
 
+          // Main container gradient.  Must be first to show up behind all other elements
           Container(
             decoration: BoxDecoration(
               gradient: (saved ?
                 LinearGradient(
                   colors: [
                     typeColors[pokemon.types[0]],
-                    typeColors[pokemon.types[1] != null ? pokemon.types[1] : pokemon.types[0]]
+                    typeColors[pokemon.types[1] != null ?
+                      pokemon.types[1] : pokemon.types[0]]
                   ],
                   stops: [0.3, 0.7],
                   begin: Alignment.topLeft,
@@ -121,6 +124,7 @@ class _DexTrackerState extends State<DexTracker> {
             ),
           ),
 
+          // Main container outline
           Container(
             decoration: BoxDecoration(
               gradient: RadialGradient(
@@ -152,22 +156,27 @@ class _DexTrackerState extends State<DexTracker> {
                   ),
                 ),
 
-                //Expanded(
-                  /*child: */Container(
-                    child: Image(
-                      image: AssetImage(getSpritePath(pokemon.id, _header.shiny)),
-                    ),
-                    alignment: Alignment.center,
+                // Sprite
+                Container(
+                  child: Image(
+                    image: AssetImage(getSpritePath(pokemon.id, _header.shiny)),
                   ),
-                //),
+                  alignment: Alignment.center,
+                ),
 
+                // Name
                 Align(
                   alignment: Alignment.bottomCenter,
                   child: Container(
                     width: double.infinity,
                     color: Color.fromRGBO(255, 255, 255, .5),
                     child: Text(
-                      pokemon.name + (pokemon.form != null ? "\n" + pokemon.form : ""),
+                      _header.forms ?
+                        // If form dex
+                        pokemon.name + (pokemon.form != null ? "\n" + pokemon.form : "")
+                      :
+                        // Otherwise
+                        pokemon.name,
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -200,6 +209,13 @@ class _DexTrackerState extends State<DexTracker> {
     );
   }
 
+  /**
+   * Returns the proper sprite for the given Pokemon
+   *
+   * @param   id      The unique ID for the particular pokemon
+   * @param   shiny   Whether or not it's looking for the base or shiny
+   * @return  The formatted sprite path
+   */
   String getSpritePath(int id, bool shiny) {
     String folder = shiny ? 'shiny_sprites' : 'normal_sprites';
     String filename = '${id.toString()}.png'.replaceAll("^0+", "");

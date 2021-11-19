@@ -4,7 +4,6 @@
 
 This project is written in Dart/Flutter.  The dex itself is implemented as a SQL db.
 
-
 #### Existing functionality
 
 This project already has the following functionality included:
@@ -17,6 +16,10 @@ This project already has the following functionality included:
 #### To add
 
 - Choose between grid and list view
+
+#### Bugs
+
+- Apparently I never populated the Sun/Moon dex numbers or the USUM Ula'ula dex, gotta fix that db
 
 #### Credits:
 

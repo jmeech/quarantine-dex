@@ -252,3 +252,19 @@ List<Color> typeColors = [
   Color.fromRGBO(112, 87, 70, 1),   //dark
   Color.fromRGBO(214, 133, 173, 1)  //fairy
 ];
+
+Map<int, Color> color =
+{
+  50:Color.fromRGBO(0,  49, 53, .1),
+  100:Color.fromRGBO(0, 49, 53, .2),
+  200:Color.fromRGBO(0, 49, 53, .3),
+  300:Color.fromRGBO(0, 49, 53, .4),
+  400:Color.fromRGBO(0, 49, 53, .5),
+  500:Color.fromRGBO(0, 49, 53, .6),
+  600:Color.fromRGBO(0, 49, 53, .7),
+  700:Color.fromRGBO(0, 49, 53, .8),
+  800:Color.fromRGBO(0, 49, 53, .9),
+  900:Color.fromRGBO(0, 49, 53,  1),
+};
+
+MaterialColor themeColor = MaterialColor(0xFF004953, color);
