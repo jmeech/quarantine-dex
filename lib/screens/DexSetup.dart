@@ -1,5 +1,5 @@
 import "package:flutter/material.dart";
-import 'package:quarantine_dex/tools/AppDB.dart';
+import 'package:quarantine_dex/tools/Tracking.dart';
 import 'package:quarantine_dex/tools/DexHeader.dart';
 import "package:quarantine_dex/tools/util.dart";
 import 'package:quarantine_dex/screens/DexTracker.dart';
@@ -16,9 +16,9 @@ class _DexSetupState extends State<DexSetup> {
   // Default to national dex, default to non shiny dex
   // Default to "New Dex"
   Dex _dexValue = Dex.NATIONAL;
+  String _name  = "New Dex";
   bool _shiny   = false;
   bool _forms   = false;
-  String _name  = "New Dex";
 
   @override
   void initState() {
@@ -27,16 +27,22 @@ class _DexSetupState extends State<DexSetup> {
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
+
+      // Top Bar
       appBar: AppBar(
         title: Text("Set Up Dex"),
       ),
+
+      // Main content
       body: Container(
         padding: EdgeInsets.all(8.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget> [
 
+            // Name field
             TextField(
               decoration: InputDecoration(
                   hintText: 'Name your dex...'
@@ -49,6 +55,7 @@ class _DexSetupState extends State<DexSetup> {
               }
             ),
 
+            // Dex select
             DropdownButton<Dex> (
               value: _dexValue,
               items: [
@@ -90,8 +97,11 @@ class _DexSetupState extends State<DexSetup> {
               isExpanded: true,
             ),
 
+            // Shiny toggle
             Row(
                 children: <Widget> [
+
+                  // Label
                   Container(
                     child: Text(
                       "Shiny Dex?",
@@ -99,6 +109,7 @@ class _DexSetupState extends State<DexSetup> {
                     width: 200,
                   ),
 
+                  // Checkbox
                   alignRight(Checkbox(
                     value: _shiny,
                     onChanged: (bool newValue) {
@@ -110,9 +121,11 @@ class _DexSetupState extends State<DexSetup> {
                 ]
             ),
 
-
+            // Forms toggle
             Row(
                 children: <Widget> [
+
+                  // Label
                   Container(
                     child: Text(
                       "Forms?",
@@ -120,6 +133,7 @@ class _DexSetupState extends State<DexSetup> {
                     width: 200,
                   ),
 
+                  // Checkbox
                   alignRight(Checkbox(
                       value: _forms,
                       onChanged: (bool newValue) {
@@ -131,38 +145,40 @@ class _DexSetupState extends State<DexSetup> {
                 ]
             ),
 
+            // Submit
             IconButton(
               icon: Icon(Icons.add),
               onPressed: () {
-                AppDB().addDexEntry(DexHeader(
-                  id: null,
-                  dex: _dexValue,
-                  name: _name != null ? _name : "",
-                  shiny: _shiny,
-                  forms: _forms
-                )).then((result) {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => DexTracker(
-                      result,
+
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => DexTracker(
+
+                    // Save to DB and open tracker
+                    Tracking().save(DexHeader(
+                      id:     null,
+                      dex:    _dexValue,
+                      name:   _name != null ? _name : "",
+                      shiny:  _shiny,
+                      forms:  _forms,
+                      data:   []
                     ))
-                  );
-                });
+                  ))
+                );
               },
             )
-
           ]
         )
       )
     );
   }
 
+  // Dex select helper
   Widget buildDropdownItem(Dex value) {
     return DropdownMenuItem<Dex>(
       child: Text(value.label),
       value: value,
     );
   }
-
 }

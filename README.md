@@ -4,7 +4,6 @@
 
 This project is written in Dart/Flutter.  The dex itself is implemented as a SQL db.
 
-
 #### Existing functionality
 
 This project already has the following functionality included:
@@ -12,11 +11,15 @@ This project already has the following functionality included:
 - Create/delete multiple persistent living dex trackers
 - Select between National dex and various regional dexes
 - Select between normal dex and shiny dex
+- Form tracker for full living form dexes, includes exception for Alcremies
 
 #### To add
 
-- Form tracker for full living form dexes
 - Choose between grid and list view
+
+#### Bugs
+
+- Apparently I never populated the Sun/Moon dex numbers or the USUM Ula'ula dex, gotta fix that db
 
 #### Credits:
 

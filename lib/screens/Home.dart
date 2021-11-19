@@ -1,6 +1,8 @@
-import "package:flutter/material.dart";
+import 'dart:async';
+import 'package:flutter/material.dart';
 import 'package:quarantine_dex/screens/DexSetup.dart';
 import 'package:quarantine_dex/screens/DexTracker.dart';
+import 'package:quarantine_dex/tools/Tracking.dart';
 import 'package:quarantine_dex/tools/util.dart';
 import "package:quarantine_dex/tools/AppDB.dart";
 import "package:quarantine_dex/tools/DexHeader.dart";
@@ -16,18 +18,18 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
 
-  // Get list of active dexes from AppDB
-  // ID number corresponds with txt file to store caught mons
-  List<DexHeader> _dexList = [];
   String _testingName = "Create a new dex to track!";
 
   @override
   void initState() {
     super.initState();
-    // Nested to avoid reading an unpopulated DB,
-    // With any luck find a more elegant solution
-    AppDB().initDB().then((test) {
-      _refreshDexList();
+    AppDB().initDB().then((value) {
+      Tracking().init().then((value) {
+        // ¯\_(ツ)_/¯
+        Timer(Duration(milliseconds: 5), () {
+          setState(() {});
+        });
+      });
     });
   }
 
@@ -35,6 +37,8 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
 
     return Scaffold(
+
+      // Top Bar
       appBar: AppBar(
         title: Text(widget.title),
       ),
@@ -44,6 +48,7 @@ class _HomeState extends State<Home> {
         child: ListView(
           children: [
 
+            // Drawer top image
             Container(
               height: 100,
               child: DrawerHeader(
@@ -71,16 +76,18 @@ class _HomeState extends State<Home> {
               ),
             ),
 
+            // Settings tile
             ListTile(
               leading: Icon(
                 Icons.settings
               ),
               title: Text("Settings..."),
               onTap: () {
-                AppDB().testDB();
+                // TODO settings
               }
             ),
 
+            // About tile
             ListTile(
               leading: Icon(
                 Icons.info,
@@ -90,33 +97,42 @@ class _HomeState extends State<Home> {
                 _showAbout();
               },
             ),
+
+            // Debug tile
+            ListTile(
+              leading: Icon(
+                Icons.bug_report_outlined,
+              ),
+              title: Text("Debug"),
+              onTap: () {
+                setState(() {});
+              },
+            ),
           ],
         )
       ),
 
       // Main body
-      body: _dexList.isEmpty ?
+      body: Tracking().isEmpty ?
 
         // Content if dex list is empty
         Text(_testingName)
+
       :
         // Content if dex list is not empty
         ListView.builder(
-          itemCount: _dexList.length,
+          itemCount: Tracking().length,
           itemBuilder: (context, i) {
 
-            // Get data from header
-            int     _dexId    = _dexList[i].id;
-            Dex     _dex      = _dexList[i].dex;
-            String  _dexName  = _dexList[i].name;
-            bool    _shiny    = _dexList[i].shiny;
+            DexHeader _data = Tracking()[i];
 
+            // Visual card
             return Card(
               child: ListTile(
 
                 // Leading icon based on shiny or not
                 // TODO custom icons
-                leading:  _shiny ?
+                leading:  _data.shiny ?
                   Icon(
                     Icons.star,
                     color: Colors.red,
@@ -130,33 +146,26 @@ class _HomeState extends State<Home> {
 
                 // Name of dex
                 title:    Text((i + 1).toString().padLeft(2, '0') + ": " +
-                    (_dexName != null ? _dexName : "FIX NULL DEX NAMES")),
+                    (_data.name != null ? _data.name : "FIX NULL DEX NAMES")),
 
                 // Dex details
-                subtitle: Text(_dex.label + " DEBUG: " + _dexId.toString()),
+                subtitle: Text(
+                    _data.dex.label +
+                    (_data.forms ? " Forms" : " Base") +
+                    " DEBUG: " + _data.id.toString()
+                ),
 
                 // Dex options
                 trailing: Row(
-
                   mainAxisSize: MainAxisSize.min,
 
-                  // Edit dex info
                   children: [
+
+                    // Edit dex info
                     IconButton(
                       icon: Icon(Icons.edit),
                       onPressed: () {
-                        /*
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => DexEdit(
-                            _dexList[i]
-                          ))
-                        ).then((value) {
-                          _refreshDexList();
-                        });
-                        AppDB().testDB();
-                        */
-                        _editDex(_dexList[i]);
+                        _editDex(Tracking()[i]);
                       },
                     ),
 
@@ -164,11 +173,8 @@ class _HomeState extends State<Home> {
                     IconButton(
                       icon: Icon(Icons.delete),
                       onPressed: () {
-                        AppDB().deleteDexEntry(_dexList[i].id).then((value) {
-                          setState(() {
-                            _dexList = value;
-                          });
-                        });
+                        Tracking().delete(Tracking()[i].id);
+                        setState(() {});
                       })
                   ],
                 ),
@@ -178,9 +184,13 @@ class _HomeState extends State<Home> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => DexTracker(
-                      _dexList[i],
+                      Tracking()[i],
                     ))
-                  );
+                  ).then((value) {
+                    //AppDB().getAllTracked().then((result) {
+                      setState(() {});
+                    //});
+                  });
                 },
               ),
             );
@@ -200,21 +210,15 @@ class _HomeState extends State<Home> {
   void _addDex() async {
     Navigator.push(
       context,
-      new MaterialPageRoute(builder: (context) => new DexSetup()),
+      new MaterialPageRoute(
+          builder: (context) => new DexSetup()
+      ),
     ).then((value) {
-      _refreshDexList();
+      setState(() {});
     });
   }
 
-  // Get dex list and set list
-  void _refreshDexList() {
-    AppDB().getDexEntryList().then((result) {
-      setState(() {
-        _dexList = result;
-      });
-    });
-  }
-
+  // Display info screen
   Future<void> _showAbout() async {
     return showDialog<void>(
       context: context,
@@ -250,6 +254,7 @@ class _HomeState extends State<Home> {
     );
   }
 
+  // Edit an existing dex
   Future<void> _editDex(DexHeader _header) async {
 
     TextEditingController _txt;
@@ -270,6 +275,7 @@ class _HomeState extends State<Home> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: <Widget> [
 
+                      // Dex Name
                       TextField(
                           maxLength: 40,
                           controller: _txt,
@@ -280,6 +286,7 @@ class _HomeState extends State<Home> {
                           }
                       ),
 
+                      // Toggle shinyness
                       Row(
                           children: <Widget> [
                             Container(
@@ -300,13 +307,33 @@ class _HomeState extends State<Home> {
                           ]
                       ),
 
+                      // Toggle forms
+                      Row(
+                          children: <Widget> [
+                            Container(
+                              child: Text(
+                                "Track forms?",
+                              ),
+                              width: 200,
+                            ),
+
+                            alignRight(Checkbox(
+                                value: _header.forms,
+                                onChanged: (bool newValue) {
+                                  setState(() {
+                                    _header.forms = newValue;
+                                  });
+                                }
+                            )),
+                          ]
+                      ),
+
+                      // Confirm
                       IconButton(
                           icon: Icon(Icons.check_circle),
                           onPressed: () {
-                            AppDB().updateDexEntry(_header).then((value) {
-                              Navigator.of(context).pop();
-                              _refreshDexList();
-                            });
+                            Tracking().save(_header);
+                            Navigator.of(context).pop();
                           }
                       )
                     ],
