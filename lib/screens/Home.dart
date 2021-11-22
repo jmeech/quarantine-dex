@@ -128,6 +128,7 @@ class _HomeState extends State<Home> {
 
             // Visual card
             return Card(
+              elevation: 2,
               child: ListTile(
 
                 // Leading icon based on shiny or not
@@ -173,8 +174,34 @@ class _HomeState extends State<Home> {
                     IconButton(
                       icon: Icon(Icons.delete),
                       onPressed: () {
-                        Tracking().delete(Tracking()[i].id);
-                        setState(() {});
+                        return showDialog<void>(
+                          context: context,
+                          barrierDismissible: false, // user must tap button!
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text('Are you sure?'),
+                              content: SingleChildScrollView(
+                                child: ListBody(
+                                  children: <Widget>[
+                                    TextButton(
+                                      child: Text('Cancel'),
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      }
+                                    ),
+                                    TextButton(
+                                      child: Text('Delete'),
+                                      onPressed: () {
+                                        Tracking().delete(Tracking()[i].id);
+                                        setState(() {});
+                                        Navigator.of(context).pop();
+                                      },
+                                    )
+                                  ],
+                                ),
+                              ),
+                            );
+                          });
                       })
                   ],
                 ),
@@ -222,7 +249,7 @@ class _HomeState extends State<Home> {
   Future<void> _showAbout() async {
     return showDialog<void>(
       context: context,
-      barrierDismissible: false, // user must tap button!
+      barrierDismissible: true,
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('About Quarantine Dex'),
@@ -236,6 +263,7 @@ class _HomeState extends State<Home> {
                 Text("All gen 6 sprites courtesy of Smogon's X/Y Sprite Project"),
                 Text("All gen 7 sprites courtesy of Smogon's Sun/Moon Sprite Project"),
                 Text("All gen 8 sprites courtesy of Smogon's Sword/Shield Sprite Project"),
+                Text("App Icon courtesy of iconfinder.com icon creator Ramy Wafaa Wadee"),
                 Text(""),
                 Text("Please send any suggestions for this app to be3612@gmail.com"),
               ],
