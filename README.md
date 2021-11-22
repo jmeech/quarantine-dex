@@ -16,7 +16,7 @@ This project already has the following functionality included:
 #### To add
 
 - Choose between grid and list view
-
+- Search the tracking screen to avoid having to scroll for 10 years
 
 #### Credits:
 
