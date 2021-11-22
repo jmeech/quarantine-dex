@@ -17,9 +17,6 @@ This project already has the following functionality included:
 
 - Choose between grid and list view
 
-#### Bugs
-
-- Apparently I never populated the Sun/Moon dex numbers or the USUM Ula'ula dex, gotta fix that db
 
 #### Credits:
 
