@@ -20,8 +20,9 @@ class _DexTrackerState extends State<DexTracker> {
 
   double        _percentComplete = 0;
   DexHeader     _header;
-  List<Pokemon> _pokedex    = [];
-  List<int>     _savedPkmn  = [];
+  List<Pokemon> _pokedex      = [];
+  List<int>     _savedPkmn    = [];
+  List<Pokemon> _filterList   = [];
 
   @override
   void initState() {
@@ -33,6 +34,7 @@ class _DexTrackerState extends State<DexTracker> {
       setState(() {
         _pokedex = value;
         _savedPkmn.addAll(_header.data);
+        _filterList.addAll(_pokedex);
       });
     });
   }
@@ -57,6 +59,48 @@ class _DexTrackerState extends State<DexTracker> {
           title: Text(_header.name),
         ),
 
+        floatingActionButton: FloatingActionButton(
+          backgroundColor: themeColor,
+          onPressed: () {
+            print("clicked");
+            showModalBottomSheet(context: context, builder: (context) => (
+                Container(
+                  margin: EdgeInsets.all(4),
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: 'Search...',
+                      counter: Offstage(),
+                    ),
+                    maxLength: 12,
+                    onChanged: (String _filter) {
+                      setState(() {
+                        if(_filter.isEmpty || _filter == "") {
+                          _filterList.clear();
+                          _filterList.addAll(_pokedex);
+                        }
+                        else {
+                          _filterList.clear();
+                          _pokedex.forEach((e) {
+                            if(e.name.toLowerCase().contains(_filter)) _filterList.add(e);
+                          });
+                        }
+                      });
+                    },
+                  ),
+                )
+            ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(3),
+                    topRight: Radius.circular(3)
+                ),
+              ),
+            );
+          },
+          tooltip: 'Filter pokemon...',
+          child: Icon(Icons.search),
+        ),
+
         // Main content
         body: Column(
 
@@ -64,7 +108,7 @@ class _DexTrackerState extends State<DexTracker> {
 
             // Percentage tracker
             Text(
-              '${(_percentComplete * 100).round()}% complete',
+              '${(_percentComplete * 100).floor()}% complete',
             ),
 
             // Visualize percent complete
@@ -80,9 +124,9 @@ class _DexTrackerState extends State<DexTracker> {
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 3,
                 ),
-                itemCount: _pokedex != null ? _pokedex.length : 0,
+                itemCount: _filterList != null ? _filterList.length : 0,
                 itemBuilder: (context, i) {
-                  return _buildPanel(_pokedex[i]);
+                  return _buildPanel(_filterList[i]);
                 }
               ),
             ),
