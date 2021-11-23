@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:quarantine_dex/screens/DexSetup.dart';
 import 'package:quarantine_dex/screens/DexTracker.dart';
@@ -6,6 +7,7 @@ import 'package:quarantine_dex/tools/Tracking.dart';
 import 'package:quarantine_dex/tools/util.dart';
 import "package:quarantine_dex/tools/AppDB.dart";
 import "package:quarantine_dex/tools/DexHeader.dart";
+import 'package:url_launcher/url_launcher.dart';
 
 class Home extends StatefulWidget {
   Home({Key key, this.title}) : super(key: key);
@@ -33,6 +35,9 @@ class _HomeState extends State<Home> {
     });
   }
 
+  // ***********************
+  // * BUILD MAIN SCAFFOLD *
+  // ***********************
   @override
   Widget build(BuildContext context) {
 
@@ -116,9 +121,11 @@ class _HomeState extends State<Home> {
       body: Tracking().isEmpty ?
 
         // Content if dex list is empty
+        // TODO Home screen if no dexes are being tracked
         Text(_testingName)
 
       :
+
         // Content if dex list is not empty
         ListView.builder(
           itemCount: Tracking().length,
@@ -145,18 +152,17 @@ class _HomeState extends State<Home> {
                     color: Colors.black87,
                   ),
 
-                // Name of dex
+                // Name of dex title
                 title:    Text((i + 1).toString().padLeft(2, '0') + ": " +
                     (_data.name != null ? _data.name : "FIX NULL DEX NAMES")),
 
-                // Dex details
+                // Dex details subtitle
                 subtitle: Text(
                     _data.dex.label +
-                    (_data.forms ? " Forms" : " Base") +
-                    " DEBUG: " + _data.id.toString()
+                    (_data.forms ? ": Forms" : ": Base")
                 ),
 
-                // Dex options
+                // Dex options trailing
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
 
@@ -233,7 +239,9 @@ class _HomeState extends State<Home> {
     );
   }
 
-  // Add a new dex to track
+  // ***********
+  // * ADD DEX *
+  // ***********
   void _addDex() async {
     Navigator.push(
       context,
@@ -245,7 +253,9 @@ class _HomeState extends State<Home> {
     });
   }
 
-  // Display info screen
+  // ****************
+  // * ABOUT SCREEN *
+  // ****************
   Future<void> _showAbout() async {
     return showDialog<void>(
       context: context,
@@ -256,14 +266,95 @@ class _HomeState extends State<Home> {
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                // TODO add links to credits
+
                 Text("This is a project I started while unemployed on COVID lockdown.  I constantly have several living dexes going at any time across several Pokémon games, and I wanted to have one central place to keep track of them."),
                 Text(""),
-                Text("All gen 1-5 sprites ripped from Pokémon BW by Veekun"),
-                Text("All gen 6 sprites courtesy of Smogon's X/Y Sprite Project"),
-                Text("All gen 7 sprites courtesy of Smogon's Sun/Moon Sprite Project"),
-                Text("All gen 8 sprites courtesy of Smogon's Sword/Shield Sprite Project"),
-                Text("App Icon courtesy of iconfinder.com icon creator Ramy Wafaa Wadee"),
+
+                RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: "All gen 1-5 sprites ripped from Pokémon BW by ",
+                        style: TextStyle(color: Colors.black, fontSize: (16.0)),
+                      ),
+                      TextSpan(
+                          text: "Veekun",
+                          style: TextStyle(color: Colors.blue, fontSize: (16.0)),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () { launch('https://veekun.com'); }
+                      ),
+                    ],
+                  ),
+                ),
+
+                RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                          text: "All gen 6 sprites courtesy of ",
+                          style: TextStyle(color: Colors.black, fontSize: (16.0)),
+                      ),
+                      TextSpan(
+                          text: "Smogon's X/Y Sprite Project",
+                          style: TextStyle(color: Colors.blue, fontSize: (16.0)),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () { launch('https://www.smogon.com/forums/threads/x-y-sprite-project.3486712/'); }
+                      ),
+                    ],
+                  ),
+                ),
+
+                RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: "All gen 7 sprites courtesy of ",
+                        style: TextStyle(color: Colors.black, fontSize: (16.0)),
+                      ),
+                      TextSpan(
+                          text: "Smogon's Sun/Moon Sprite Project",
+                          style: TextStyle(color: Colors.blue, fontSize: (16.0)),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () { launch('https://www.smogon.com/forums/threads/sun-moon-sprite-project.3577711/'); }
+                      ),
+                    ],
+                  ),
+                ),
+
+                RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: "All gen 8 sprites courtesy of ",
+                        style: TextStyle(color: Colors.black, fontSize: (16.0)),
+                      ),
+                      TextSpan(
+                          text: "Smogon's Sword/Shield Sprite Project",
+                          style: TextStyle(color: Colors.blue, fontSize: (16.0)),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () { launch('https://www.smogon.com/forums/threads/sword-shield-sprite-project.3647722/'); }
+                      ),
+                    ],
+                  ),
+                ),
+
+                RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: "App Icon courtesy of iconfinder.com icon creator ",
+                        style: TextStyle(color: Colors.black, fontSize: (16.0)),
+                      ),
+                      TextSpan(
+                          text: "Ramy Wafaa Wadee",
+                          style: TextStyle(color: Colors.blue, fontSize: (16.0)),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () { launch('https://www.iconfinder.com/roundicons'); }
+                      ),
+                    ],
+                  ),
+                ),
+
                 Text(""),
                 Text("Please send any suggestions for this app to be3612@gmail.com"),
               ],
@@ -282,7 +373,9 @@ class _HomeState extends State<Home> {
     );
   }
 
-  // Edit an existing dex
+  // ************
+  // * EDIT DEX *
+  // ************
   Future<void> _editDex(DexHeader _header) async {
 
     TextEditingController _txt;
