@@ -139,17 +139,28 @@ class _HomeState extends State<Home> {
               child: ListTile(
 
                 // Leading icon based on shiny or not
-                // TODO custom icons
                 leading:  _data.shiny ?
-                  Icon(
-                    Icons.star,
-                    color: Colors.red,
-                    size: 30,
+
+                  Column(
+                    children: [
+                      ImageIcon(
+                        AssetImage('assets/shinyIcon.png'),
+                        size: 30,
+                        color: Colors.red,
+                      )
+                    ],
+                    mainAxisAlignment: MainAxisAlignment.center,
                   )
-                :
-                  Icon(
-                    Icons.check_box_outlined,
-                    color: Colors.black87,
+                    :
+                  Column(
+                    children: [
+                      ImageIcon(
+                        AssetImage('assets/normalIcon.png'),
+                        size: 30,
+                        color:Colors.black87,
+                      ),
+                    ],
+                    mainAxisAlignment: MainAxisAlignment.center,
                   ),
 
                 // Name of dex title
@@ -407,7 +418,7 @@ class _HomeState extends State<Home> {
                           }
                       ),
 
-                      // Toggle shinyness
+                      // Toggle shininess
                       Row(
                           children: <Widget> [
                             Container(
