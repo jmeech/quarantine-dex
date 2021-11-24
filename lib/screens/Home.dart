@@ -88,7 +88,6 @@ class _HomeState extends State<Home> {
               ),
               title: Text("Settings..."),
               onTap: () {
-                // TODO settings
               }
             ),
 
@@ -179,6 +178,7 @@ class _HomeState extends State<Home> {
 
                   children: [
 
+                    // TODO Bug: Rename doesn't reflect until renavigate
                     // Edit dex info
                     IconButton(
                       icon: Icon(Icons.edit),

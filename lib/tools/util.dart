@@ -253,6 +253,28 @@ List<Color> typeColors = [
   Color.fromRGBO(214, 133, 173, 1)  //fairy
 ];
 
+List<String> types = [
+  null,
+  "Normal",
+  "Fighting",
+  "Flying",
+  "Poison",
+  "Ground",
+  "Rock",
+  "Bug",
+  "Ghost",
+  "Steel",
+  "Fire",
+  "Water",
+  "Grass",
+  "Electric",
+  "Psychic",
+  "Ice",
+  "Dragon",
+  "Dark",
+  "Fairy",
+];
+
 Map<int, Color> color =
 {
   50:Color.fromRGBO(0,  49, 53, .1),
