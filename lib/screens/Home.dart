@@ -1,12 +1,14 @@
 import 'dart:async';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:quarantine_dex/Models/Pokemon.dart';
 import 'package:quarantine_dex/screens/DexSetup.dart';
 import 'package:quarantine_dex/screens/DexTracker.dart';
 import 'package:quarantine_dex/tools/Tracking.dart';
 import 'package:quarantine_dex/tools/util.dart';
 import "package:quarantine_dex/tools/AppDB.dart";
-import "package:quarantine_dex/tools/DexHeader.dart";
+import 'package:quarantine_dex/Models/DexHeader.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class Home extends StatefulWidget {
@@ -108,8 +110,9 @@ class _HomeState extends State<Home> {
                 Icons.bug_report_outlined,
               ),
               title: Text("Debug"),
-              onTap: () {
-                setState(() {});
+              onTap: () async {
+                Pokemon test = await AppDB().getPkmn(899);
+                print(test.name);
               },
             ),
           ],
@@ -209,7 +212,7 @@ class _HomeState extends State<Home> {
                                     TextButton(
                                       child: Text('Delete'),
                                       onPressed: () {
-                                        Tracking().delete(Tracking()[i].id);
+                                        Tracking().deleteDex(Tracking()[i].id);
                                         setState(() {});
                                         Navigator.of(context).pop();
                                       },
@@ -225,15 +228,14 @@ class _HomeState extends State<Home> {
 
                 // Open dex on press
                 onTap: () {
+                  HapticFeedback.heavyImpact();
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => DexTracker(
                       Tracking()[i],
                     ))
                   ).then((value) {
-                    //AppDB().getAllTracked().then((result) {
                       setState(() {});
-                    //});
                   });
                 },
               ),
@@ -464,7 +466,7 @@ class _HomeState extends State<Home> {
                       IconButton(
                           icon: Icon(Icons.check_circle),
                           onPressed: () {
-                            Tracking().save(_header);
+                            Tracking().saveDex(_header);
                             Navigator.of(context).pop();
                           }
                       )

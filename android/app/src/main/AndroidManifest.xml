@@ -1,5 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.jmeech.quarantine_dex">
+    <uses-permission android:name="android.permission.VIBRATE" />
    <application
         android:label="quarantine_dex"
         android:icon="@mipmap/ic_launcher">

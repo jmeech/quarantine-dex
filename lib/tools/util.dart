@@ -37,22 +37,65 @@ Widget alignBottom(Widget widget) {
   );
 }
 
+enum Method {
+  FULL,
+  RESET,
+  SAFARI,
+  HORDE,
+  FISHING,
+  RADAR,
+  SOS,
+  MASUDA,
+  BREEDING
+}
+
+extension MethodExtension on Method {
+  String get label {
+    switch (this) {
+      case Method.FULL      : return "Full Odds";
+      case Method.RESET     : return "Soft Reset";
+      case Method.SAFARI    : return "Friend Safari";
+      case Method.HORDE     : return "Horde Encounters";
+      case Method.FISHING   : return "Chain Fishing";
+      case Method.RADAR     : return "Poke Radar";
+      case Method.SOS       : return "S.O.S. Encounters";
+      case Method.MASUDA    : return "Masuda Method";
+      case Method.BREEDING  : return "Breeding";
+      default               : return null;
+    }
+  }
+}
+
+Method methodFromIndex(int i) {
+  switch(i) {
+    case 0 : return Method.FULL;
+    case 1 : return Method.RESET;
+    case 2 : return Method.SAFARI;
+    case 3 : return Method.HORDE;
+    case 4 : return Method.FISHING;
+    case 5 : return Method.RADAR;
+    case 6 : return Method.SOS;
+    case 7 : return Method.MASUDA;
+    case 8 : return Method.BREEDING;
+    default : return null;
+  }
+}
+
 enum Dex {
   NATIONAL,
   RBY,
-  FRLG,
-  LGPE,
   GSC,
-  HGSS,
   RSE,
-  ORAS,
+  FRLG,
   DP,
   PT,
+  HGSS,
   BW,
   B2W2,
   XY_CENTRAL,
   XY_COASTAL,
   XY_MOUNTAIN,
+  ORAS,
   SM,
   SM_MELEMELE,
   SM_AKALA,
@@ -63,9 +106,11 @@ enum Dex {
   USUM_AKALA,
   USUM_ULAULA,
   USUM_PONI,
+  LGPE,
   SWSH,
   IOA,
-  CT
+  CT,
+  PLA
 }
 
 extension DexExtension on Dex {
@@ -99,6 +144,7 @@ extension DexExtension on Dex {
       case(Dex.SWSH)          : return "Sword/Shield";
       case(Dex.IOA)           : return "Isle of Armor";
       case(Dex.CT)            : return "Crown Tundra";
+      case(Dex.PLA)           : return "Legends: Arceus";
       default                 : return "UNINITIALIZED DEX";
     }
   }
@@ -133,6 +179,7 @@ extension DexExtension on Dex {
       case(Dex.SWSH)          : return "dex_SWSH";
       case(Dex.IOA)           : return "dex_IOA";
       case(Dex.CT)            : return "dex_CT";
+      case(Dex.PLA)           : return "dex_PLA";
       default                 : return "UNINITIALIZED DEX";
     }
   }
@@ -142,32 +189,33 @@ Dex dexFromIndex(int index) {
   switch(index) {
     case(0)   : return Dex.NATIONAL;
     case(1)   : return Dex.RBY;
-    case(2)   : return Dex.FRLG;
-    case(3)   : return Dex.LGPE;
-    case(4)   : return Dex.GSC;
-    case(5)   : return Dex.HGSS;
-    case(6)   : return Dex.RSE;
-    case(7)   : return Dex.ORAS;
-    case(8)   : return Dex.DP;
-    case(9)   : return Dex.PT;
-    case(10)  : return Dex.BW;
-    case(11)  : return Dex.B2W2;
-    case(12)  : return Dex.XY_CENTRAL;
-    case(13)  : return Dex.XY_COASTAL;
-    case(14)  : return Dex.XY_MOUNTAIN;
-    case(15)  : return Dex.SM;
-    case(16)  : return Dex.SM_MELEMELE;
-    case(17)  : return Dex.SM_AKALA;
-    case(18)  : return Dex.SM_ULAULA;
-    case(19)  : return Dex.SM_PONI;
-    case(20)  : return Dex.USUM;
-    case(21)  : return Dex.USUM_MELEMELE;
-    case(22)  : return Dex.USUM_AKALA;
-    case(23)  : return Dex.USUM_ULAULA;
-    case(24)  : return Dex.USUM_PONI;
+    case(2)   : return Dex.GSC;
+    case(3)   : return Dex.RSE;
+    case(4)   : return Dex.FRLG;
+    case(5)   : return Dex.DP;
+    case(6)   : return Dex.PT;
+    case(7)   : return Dex.HGSS;
+    case(8)   : return Dex.BW;
+    case(9)   : return Dex.B2W2;
+    case(10)  : return Dex.XY_CENTRAL;
+    case(11)  : return Dex.XY_COASTAL;
+    case(12)  : return Dex.XY_MOUNTAIN;
+    case(13)  : return Dex.ORAS;
+    case(14)  : return Dex.SM;
+    case(15)  : return Dex.SM_MELEMELE;
+    case(16)  : return Dex.SM_AKALA;
+    case(17)  : return Dex.SM_ULAULA;
+    case(18)  : return Dex.SM_PONI;
+    case(19)  : return Dex.USUM;
+    case(20)  : return Dex.USUM_MELEMELE;
+    case(21)  : return Dex.USUM_AKALA;
+    case(22)  : return Dex.USUM_ULAULA;
+    case(23)  : return Dex.USUM_PONI;
+    case(24)  : return Dex.LGPE;
     case(25)  : return Dex.SWSH;
     case(26)  : return Dex.IOA;
     case(27)  : return Dex.CT;
+    case(28)  : return Dex.PLA;
     default   : return Dex.NATIONAL;
   }
 }
@@ -290,3 +338,4 @@ Map<int, Color> color =
 };
 
 MaterialColor themeColor = MaterialColor(0xFF004953, color);
+

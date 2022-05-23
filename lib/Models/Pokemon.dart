@@ -36,4 +36,13 @@ class Pokemon {
     this.types  = [map['type_1'], map['type_2']];
   }
 
+  Map<String, dynamic> toMap() {
+    return {
+      'name'    : name,
+      'form'    : form,
+      'id'      : id,
+      'dexNum'  : dexNum,
+      'types'   : types
+    };
+  }
 }

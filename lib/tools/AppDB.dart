@@ -1,8 +1,9 @@
 import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart';
-import 'package:quarantine_dex/tools/DexHeader.dart';
-import 'package:quarantine_dex/tools/Pokemon.dart';
+import 'package:quarantine_dex/Models/DexHeader.dart';
+import 'package:quarantine_dex/Models/Hunt.dart';
+import 'package:quarantine_dex/Models/Pokemon.dart';
 import 'package:quarantine_dex/tools/util.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -71,6 +72,32 @@ class AppDB {
   // * READ *
   // ********
 
+  Future<Pokemon> getPkmn(int id) async {
+    final List<Map<String, dynamic>> _pkmn = await _db.rawQuery(
+      '''
+      SELECT
+        pkmn.name,
+        pkmn.form,
+        pkmn.id,
+        dex_entries.dex_NAT AS dexNum,
+        pkmn.type_1,
+        pkmn.type_2,
+        pkmn.sub
+      FROM
+        pkmn
+      INNER JOIN
+        dex_entries
+      ON
+        pkmn.species_id = dex_entries.dex_NAT
+      WHERE
+        pkmn.id = ${id}     
+      '''
+    );
+
+    return Pokemon.fromMap(_pkmn[0]);
+
+  }
+
   /**
    * Reads the app database for a list of Pokemon determined by a particular dex
    *
@@ -123,11 +150,18 @@ class AppDB {
    * Returns the list of currently tracked dexes
    * @return    The list of currently tracked dexes
    */
-  Future<List<DexHeader>> getAllTracked() async {
+  Future<List<DexHeader>> getAllDexes() async {
     final List<Map<String, dynamic>> dexes = await _db.query('tracking');
 
     return List.generate(dexes.length, (i) {
       return DexHeader.fromMap(dexes[i]);
+    });
+  }
+
+  Future<List<Hunt>> getAllHunts() async {
+    final List<Map<String, dynamic>> hunts = await _db.query('hunts');
+    return List.generate(hunts.length, (i) {
+      return Hunt.fromMap(hunts[i]);
     });
   }
 
@@ -142,10 +176,17 @@ class AppDB {
    * @param   toInsert  The new dex to write to the DB
    * @return            The new dex after being assigned an id
    */
-  void addDexEntry(DexHeader _toInsert) async {
+  void addDex(DexHeader _toInsert) async {
     await _db.insert(
         'tracking',
         _toInsert.toMap()
+    );
+  }
+
+  void addHunt(Hunt _toInsert) async {
+    await _db.insert(
+      'hunts',
+      _toInsert.toMap()
     );
   }
 
@@ -155,12 +196,21 @@ class AppDB {
    * @param   toUpdate  The dex to be updated
    * @return            The updated Dex
    */
-  void updateDexEntry(DexHeader _toUpdate) async {
+  void updateDex(DexHeader _toUpdate) async {
     await _db.update(
         'tracking',
         _toUpdate.toMap(),
         where: 'id = ?',
         whereArgs: [_toUpdate.id]
+    );
+  }
+
+  void updateHunt(Hunt _toUpdate) async {
+    await _db.update(
+      'hunts',
+      _toUpdate.toMap(),
+      where: 'id = ?',
+      whereArgs: [_toUpdate.id]
     );
   }
 
@@ -174,11 +224,19 @@ class AppDB {
    * @param   id  The ID of the tracked dex to be deleted
    * @return      The new list of tracked dexes
    */
-  void deleteDexEntry(int id) async {
+  void deleteDex(int id) async {
     await _db.delete(
         'tracking',
         where: 'id = ?',
         whereArgs: [id]
+    );
+  }
+
+  void deleteHunt(int id) async {
+    await _db.delete(
+      'hunts',
+      where: 'id = ?',
+      whereArgs: [id]
     );
   }
 

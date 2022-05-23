@@ -1,6 +1,6 @@
 import "package:flutter/material.dart";
 import 'package:quarantine_dex/tools/Tracking.dart';
-import 'package:quarantine_dex/tools/DexHeader.dart';
+import 'package:quarantine_dex/Models/DexHeader.dart';
 import "package:quarantine_dex/tools/util.dart";
 import 'package:quarantine_dex/screens/DexTracker.dart';
 
@@ -60,6 +60,7 @@ class _DexSetupState extends State<DexSetup> {
               value: _dexValue,
               items: [
                 buildDropdownItem(Dex.NATIONAL),
+                buildDropdownItem(Dex.PLA),
                 buildDropdownItem(Dex.SWSH),
                 buildDropdownItem(Dex.IOA),
                 buildDropdownItem(Dex.CT),
@@ -156,7 +157,7 @@ class _DexSetupState extends State<DexSetup> {
                   MaterialPageRoute(builder: (context) => DexTracker(
 
                     // Save to DB and open tracker
-                    Tracking().save(DexHeader(
+                    Tracking().saveDex(DexHeader(
                       id:     null,
                       dex:    _dexValue,
                       name:   _name != null ? _name : "",

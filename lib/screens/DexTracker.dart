@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:quarantine_dex/Models/Hunt.dart';
+import 'package:quarantine_dex/tools/Tracking.dart';
 import 'package:quarantine_dex/tools/util.dart';
 import 'package:quarantine_dex/tools/AppDB.dart';
-import 'package:quarantine_dex/tools/Pokemon.dart';
-import 'package:quarantine_dex/tools/DexHeader.dart';
+import 'package:quarantine_dex/Models/Pokemon.dart';
+import 'package:quarantine_dex/Models/DexHeader.dart';
+
+import 'ShinyTracker.dart';
 
 class DexTracker extends StatefulWidget {
 
@@ -24,6 +29,7 @@ class _DexTrackerState extends State<DexTracker> with TickerProviderStateMixin {
   List<Pokemon> _pokedex      = [];
   List<int>     _savedPkmn    = [];
   List<Pokemon> _filterList   = [];
+  List<Hunt>    _huntList     = [];
 
   @override
   void initState() {
@@ -37,6 +43,7 @@ class _DexTrackerState extends State<DexTracker> with TickerProviderStateMixin {
         _savedPkmn.addAll(_header.data);
         _filterList.addAll(_pokedex);
       });
+      _huntList = Tracking().loadHuntsByDex(_header.id);
     });
   }
 
@@ -48,48 +55,126 @@ class _DexTrackerState extends State<DexTracker> with TickerProviderStateMixin {
 
     // Will pop scope allows auto write when the page is navigated from
     return WillPopScope(
+
       onWillPop: () async {
         _header.data = _savedPkmn;
-        await AppDB().updateDexEntry(_header);
+        await AppDB().updateDex(_header);
         return true;
       },
-      child: Scaffold(
 
-        // Top bar
-        appBar: AppBar(
-          title: Text(_header.name),
-        ),
+      child: DefaultTabController(
+        length: 2,
+        child: Scaffold(
 
-        floatingActionButton: FloatingActionButton(
-          backgroundColor: themeColor,
-          onPressed: () {
-            print("clicked");
-            _buildSearchModal();
-          },
-          tooltip: 'Filter pokemon...',
-          child: Icon(Icons.search),
-        ),
-
-        // Main content
-        body: Column(
-
-          children: [
-
-            // Percentage tracker
-            Text(
-              '${(_percentComplete * 100).floor()}% complete',
+          // Top bar
+          appBar: AppBar(
+            title: Text(_header.name),
+            bottom: TabBar(
+              indicatorColor: Colors.black87,
+              tabs: [
+                Tab(text: 'Dex tracker'),
+                Tab(text: "Shiny hunts"),
+              ]
             ),
+          ),
 
-            // Visualize percent complete
-            LinearProgressIndicator(
-              value: _percentComplete,
-            ),
+          floatingActionButton: FloatingActionButton(
+            backgroundColor: themeColor,
+            onPressed: () {
+              print("clicked");
+              _buildSearchModal();
+            },
+            tooltip: 'Filter pokemon...',
+            child: Icon(Icons.search),
+          ),
 
-            // Dex Grid
-            Expanded(
-              child: _buildGrid(),
-            ),
-          ]
+          // Main content
+          body: TabBarView(
+            children: [
+              Column(
+
+                children: [
+
+                  // Percentage tracker
+                  Text(
+                    '${(_percentComplete * 100).floor()}% complete',
+                  ),
+
+                  // Visualize percent complete
+                  LinearProgressIndicator(
+                    value: _percentComplete,
+                  ),
+
+                  // Dex Grid
+                  Expanded(
+                    child: _buildGrid(),
+                  ),
+                ]
+              ),
+
+              ListView.builder(
+                itemCount: _huntList.length,
+                itemBuilder: (context, i) {
+
+                  Hunt _data = _huntList[i];
+
+                  return Card(
+                    elevation: 2,
+                    child: ListTile(
+                      title: Text(_data.pkmn.name),
+                      subtitle: Text(
+                        "id: " + _data.id.toString() +
+                        " Count: " + _data.encounters.toString()
+                      ),
+                      trailing: IconButton(
+                        icon: Icon(Icons.delete),
+                        onPressed: () {
+                          return showDialog<void>(
+                              context: context,
+                              barrierDismissible: false, // user must tap button!
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: Text('Are you sure?'),
+                                  content: SingleChildScrollView(
+                                    child: ListBody(
+                                      children: <Widget>[
+                                        TextButton(
+                                            child: Text('Cancel'),
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                            }
+                                        ),
+                                        TextButton(
+                                          child: Text('Delete'),
+                                          onPressed: () {
+                                            Tracking().deleteHunt(_data.id);
+                                            _huntList = Tracking().loadHuntsByDex(_header.id);
+                                            Navigator.of(context).pop();
+                                            setState(() {});
+                                          },
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              });
+                        }),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => ShinyTracker(
+                            _data,
+                          ))
+                        ).then((value) {
+                          setState(() {});
+                        });
+                      }
+                    ),
+                  );
+                },
+              )
+            ],
+          ),
         ),
       ),
     );
@@ -200,14 +285,23 @@ class _DexTrackerState extends State<DexTracker> with TickerProviderStateMixin {
             ),
 
             Container(
-              child: Image(
-                image: AssetImage(getSpritePath(pkmn.id, _header.shiny)),
-              ),
-              alignment: Alignment.center,
+              margin: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  fit: BoxFit.fill,
+                  image: AssetImage(getSpritePath(pkmn.id, _header.shiny))
+                )
+              )
+              //child: Image(
+              //  image: AssetImage(getSpritePath(pkmn.id, _header.shiny)),
+              //),
+              //alignment: Alignment.center,
             )
           ]
         ),
+        enableFeedback: true,
         onTap: () {
+          HapticFeedback.heavyImpact();
           setState(() {
             if (saved) {
               _savedPkmn.remove(pkmn.id);
@@ -218,8 +312,32 @@ class _DexTrackerState extends State<DexTracker> with TickerProviderStateMixin {
           });
         },
         onLongPress: () {
+
+          Hunt _toOpen = Tracking().hunts.firstWhere(
+            (e) => e.pkmn.id == pkmn.id,
+            orElse: () {
+              return Hunt(
+                id: null,
+                trackingId: _header.id,
+                pkmn: pkmn,
+                method: Method.FULL,
+                dex: _header.dex,
+                charm: false,
+                encounters: 0
+              );
+            }
+          );
+
           setState(() {
-            // TODO information popup
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => ShinyTracker(
+                Tracking().saveHunt(_toOpen)
+              ))
+            ).then((value) {
+              _huntList = Tracking().loadHuntsByDex(_header.id);
+              setState(() {});
+            });
           });
         },
       ),

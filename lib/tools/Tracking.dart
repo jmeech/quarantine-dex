@@ -1,4 +1,5 @@
-import 'package:quarantine_dex/tools/DexHeader.dart';
+import 'package:quarantine_dex/Models/DexHeader.dart';
+import 'package:quarantine_dex/Models/Hunt.dart';
 import 'package:quarantine_dex/tools/AppDB.dart';
 
 class Tracking {
@@ -8,10 +9,12 @@ class Tracking {
   // *********
 
   List<DexHeader> saved = [];
+  List<Hunt>      hunts = [];
 
   // Set up Tracking class as singleton
   Tracking._({
     this.saved,
+    this.hunts
   });
 
   static final Tracking _instance = Tracking._();
@@ -23,8 +26,12 @@ class Tracking {
 
   // Initialize Dex list
   init() async {
-    AppDB().getAllTracked().then((result) {
+    AppDB().getAllDexes().then((result) {
       this.saved = result;
+    });
+
+    AppDB().getAllHunts().then((result) {
+      this.hunts = result;
     });
   }
 
@@ -39,7 +46,7 @@ class Tracking {
    * @param   save    The dex to be saved
    * @return          The saved dex with it's new ID if applicable
    */
-  DexHeader save(DexHeader save) {
+  DexHeader saveDex(DexHeader save) {
     // If new dex
     if(save.id == null) {
       // Get new ID
@@ -51,14 +58,36 @@ class Tracking {
         save.id = 0;
       }
       saved.add(save);
-      AppDB().addDexEntry(save);
+      AppDB().addDex(save);
     }
     else {
       saved[saved.indexWhere((e) => e.id == save.id)] = save;
-      AppDB().updateDexEntry(save);
+      AppDB().updateDex(save);
     }
     return save;
   }
+
+  Hunt saveHunt(Hunt save) {
+    // If new dex
+    if(save.id == null) {
+      // Get new ID
+      if(hunts != null && hunts.isNotEmpty) {
+        hunts.sort((a, b) => a.id.compareTo(b.id));
+        save.id = hunts.last.id + 1;
+      }
+      else {
+        save.id = 0;
+      }
+      hunts.add(save);
+      AppDB().addHunt(save);
+    }
+    else {
+      hunts[hunts.indexWhere((e) => e.id == save.id)] = save;
+      AppDB().updateHunt(save);
+    }
+    return save;
+  }
+
 
   // ******************
   // * LOAD FUNCTIONS *
@@ -69,8 +98,20 @@ class Tracking {
    * @param   id    The id of the requested dex
    * @return        The requested dex
    */
-  DexHeader load(int id) {
+  DexHeader loadDex(int id) {
     return saved.firstWhere((e) => e.id == id);
+  }
+
+  Hunt loadHunt(int id) {
+    return hunts.firstWhere((e) => e.id == id);
+  }
+
+  List<Hunt> loadHuntsByDex(int id) {
+    List<Hunt> toReturn = [];
+    hunts.forEach((e) {
+      if(e.trackingId == id) toReturn.add(e);
+    });
+    return toReturn;
   }
 
   // ********************
@@ -87,9 +128,14 @@ class Tracking {
    * Deletes a dex from the list by ID number.
    * @param   id    The ID of the dex to delete
    */
-  void delete(int id) {
+  void deleteDex(int id) {
     saved.removeAt(saved.indexWhere((e) => e.id == id));
-    AppDB().deleteDexEntry(id);
+    AppDB().deleteDex(id);
+  }
+
+  void deleteHunt(int id) {
+    hunts.removeAt(hunts.indexWhere((e) => e.id == id));
+    AppDB().deleteHunt(id);
   }
 
   // *********************
@@ -110,10 +156,15 @@ class Tracking {
     return saved.length;
   }
 
+  int huntsCount() {
+    return hunts.length;
+}
+
   /**
    * Returns the dex list item at index i.  This should be
    * used for iterating over the full list, not for accessing
    * elements as index i is not necessarily the item's ID.
    */
   operator [](int i) => saved[i];
+
 }
