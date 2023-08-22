@@ -60,6 +60,7 @@ class _DexSetupState extends State<DexSetup> {
               value: _dexValue,
               items: [
                 buildDropdownItem(Dex.NATIONAL),
+                buildDropdownItem(Dex.SV),
                 buildDropdownItem(Dex.PLA),
                 buildDropdownItem(Dex.SWSH),
                 buildDropdownItem(Dex.IOA),

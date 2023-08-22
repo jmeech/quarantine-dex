@@ -24,4 +24,5 @@ This project already has the following functionality included:
 - [Smogon X/Y Sprite project](https://www.smogon.com/forums/threads/x-y-sprite-project.3486712/) for the gen 6 sprites
 - [Smogon Sun/Moon Sprite project](https://www.smogon.com/forums/threads/sun-moon-sprite-project.3577711/) for the gen 7 sprites
 - [Smogon Sword/Shield Sprite project](https://www.smogon.com/forums/threads/sword-shield-sprite-project.3647722/) for the gen 8 sprites
+- [Relic Castle Gen 9 Resource Pack project](https://reliccastle.com/resources/1101/) for the gen 9 sprites
 - [Ramy Wafaa Wadee](https://www.iconfinder.com/roundicons) for the app icon
