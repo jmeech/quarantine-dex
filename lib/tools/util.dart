@@ -110,7 +110,8 @@ enum Dex {
   SWSH,
   IOA,
   CT,
-  PLA
+  PLA,
+  SV
 }
 
 extension DexExtension on Dex {
@@ -145,6 +146,7 @@ extension DexExtension on Dex {
       case(Dex.IOA)           : return "Isle of Armor";
       case(Dex.CT)            : return "Crown Tundra";
       case(Dex.PLA)           : return "Legends: Arceus";
+      case(Dex.SV)            : return "Scarlet/Violet";
       default                 : return "UNINITIALIZED DEX";
     }
   }
@@ -180,6 +182,7 @@ extension DexExtension on Dex {
       case(Dex.IOA)           : return "dex_IOA";
       case(Dex.CT)            : return "dex_CT";
       case(Dex.PLA)           : return "dex_PLA";
+      case(Dex.SV)            : return "dex_SV";
       default                 : return "UNINITIALIZED DEX";
     }
   }

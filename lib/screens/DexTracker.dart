@@ -123,7 +123,6 @@ class _DexTrackerState extends State<DexTracker> with TickerProviderStateMixin {
                     child: ListTile(
                       title: Text(_data.pkmn.name),
                       subtitle: Text(
-                        "id: " + _data.id.toString() +
                         " Count: " + _data.encounters.toString()
                       ),
                       trailing: IconButton(
@@ -144,7 +143,7 @@ class _DexTrackerState extends State<DexTracker> with TickerProviderStateMixin {
                                               Navigator.of(context).pop();
                                             }
                                         ),
-                                        TextButton(
+                                        ElevatedButton(
                                           child: Text('Delete'),
                                           onPressed: () {
                                             Tracking().deleteHunt(_data.id);
@@ -166,7 +165,14 @@ class _DexTrackerState extends State<DexTracker> with TickerProviderStateMixin {
                             _data,
                           ))
                         ).then((value) {
-                          setState(() {});
+                          print(value? "Found" : "Not found");
+                          setState(() {
+                            if (value) {
+                              _savedPkmn.add(_data.pkmn.id);
+                              Tracking().deleteHunt(_data.id);
+                            }
+                            _huntList = Tracking().loadHuntsByDex(_header.id);
+                          });
                         });
                       }
                     ),
@@ -311,36 +317,114 @@ class _DexTrackerState extends State<DexTracker> with TickerProviderStateMixin {
             _percentComplete = _savedPkmn.length / _pokedex.length;
           });
         },
+
         onLongPress: () {
 
-          Hunt _toOpen = Tracking().hunts.firstWhere(
-            (e) => e.pkmn.id == pkmn.id,
-            orElse: () {
-              return Hunt(
-                id: null,
-                trackingId: _header.id,
-                pkmn: pkmn,
-                method: Method.FULL,
-                dex: _header.dex,
-                charm: false,
-                encounters: 0
-              );
-            }
-          );
+          Method  _huntMethod = Method.FULL;
+          bool    _charm      = false;
 
-          setState(() {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => ShinyTracker(
-                Tracking().saveHunt(_toOpen)
-              ))
-            ).then((value) {
-              _huntList = Tracking().loadHuntsByDex(_header.id);
-              setState(() {});
-            });
-          });
-        },
-      ),
+          return showDialog<void>(
+            context: context,
+            builder: (BuildContext context) {
+              return StatefulBuilder(
+                builder: (context, setState) {
+                  return AlertDialog(
+                    title: Text("Configure Hunt..."),
+                    content: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          DropdownButton<Method> (
+                            value: _huntMethod,
+                            items: [
+                              buildDropdownItem(Method.FULL),
+                              buildDropdownItem(Method.RESET),
+                              buildDropdownItem(Method.SAFARI),
+                              buildDropdownItem(Method.HORDE),
+                              buildDropdownItem(Method.FISHING),
+                              buildDropdownItem(Method.RADAR),
+                              buildDropdownItem(Method.SOS),
+                              buildDropdownItem(Method.MASUDA),
+                              buildDropdownItem(Method.BREEDING),
+                            ],
+                            hint: Text("Choose your hunt method..."),
+                            onChanged: (Method newMethod) {
+                              setState(() {
+                                _huntMethod = newMethod;
+                              });
+                            },
+                            isExpanded: true,
+                          ),
+
+                          // Forms toggle
+                          Row(
+                            children: <Widget> [
+
+                              // Label
+                              Container(
+                                child: Text("Shiny Charm?"),
+                                width: 200,
+                              ),
+
+                              // Checkbox
+                              alignRight(Checkbox(
+                                value: _charm,
+                                onChanged: (bool newValue) {
+                                  setState(() {
+                                    print(_charm);
+                                    _charm = newValue;
+                                  });
+                                }
+                              )),
+                            ]
+                          ),
+
+                          IconButton(
+                            icon: Icon(Icons.add),
+                            onPressed: () {
+
+                              Hunt _toOpen = Tracking().hunts.firstWhere(
+                                  (e) => e.pkmn.id == pkmn.id,
+                                orElse: () {
+                                  return Hunt(
+                                    id: null,
+                                    trackingId: _header.id,
+                                    pkmn: pkmn,
+                                    method: _huntMethod,
+                                    dex: _header.dex,
+                                    charm: _charm,
+                                    encounters: 0
+                                  );
+                                }
+                              );
+
+                              Navigator.pop(context);
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => ShinyTracker(
+                                  Tracking().saveHunt(_toOpen),
+                                ))
+                              ).then((value) {
+                                print(value? "Found" : "Not found");
+                                setState(() {
+                                  if (value) {
+                                    _savedPkmn.add(pkmn.id);
+                                    Tracking().deleteHunt(_toOpen.id);
+                                  }
+                                  _huntList = Tracking().loadHuntsByDex(_header.id);
+                                });
+                              });
+                            }
+                          )
+                        ]
+                      )
+                    )
+                  );
+                }
+              );
+            },
+          );
+        }
+      )
     );
   }
 
@@ -355,6 +439,13 @@ class _DexTrackerState extends State<DexTracker> with TickerProviderStateMixin {
     String folder = shiny ? 'shiny_sprites' : 'normal_sprites';
     String filename = '${id.toString()}.png'.replaceAll("^0+", "");
     return 'assets/$folder/$filename';
+  }
+
+  Widget buildDropdownItem(Method value) {
+    return DropdownMenuItem<Method>(
+      child: Text(value.label),
+      value: value,
+    );
   }
 
   void _buildSearchModal() {

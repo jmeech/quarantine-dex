@@ -21,6 +21,7 @@ class _ShinyTrackerState extends State<ShinyTracker> {
   Pokemon _pkmn;
   Hunt    _hunt;
   Odds    _odds;
+  bool    _found;
 
   @override
   void initState() {
@@ -32,6 +33,7 @@ class _ShinyTrackerState extends State<ShinyTracker> {
       _hunt.charm,
       _determineOdds()
     );
+    _found = false;
     _odds.setEncounters(_hunt.encounters);
   }
 
@@ -39,11 +41,11 @@ class _ShinyTrackerState extends State<ShinyTracker> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-
         _hunt.encounters = _odds.count;
         print(_hunt.toMap().toString());
         Tracking().saveHunt(_hunt);
-        return true;
+        Navigator.of(context).pop(false);
+        return false;
       },
 
       child: Scaffold(
@@ -53,6 +55,8 @@ class _ShinyTrackerState extends State<ShinyTracker> {
 
         body: Column(
           children: [
+
+            // Sprite/clickable
             Expanded (
               child: InkWell(
                 child: Container(
@@ -70,6 +74,7 @@ class _ShinyTrackerState extends State<ShinyTracker> {
               ),
             ),
 
+            // Stats
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -90,6 +95,17 @@ class _ShinyTrackerState extends State<ShinyTracker> {
                   ]
                 )
               ],
+            ),
+
+            //Found
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: _foundHandler,
+                  child: Text("Found!"),
+                )
+              ],
             )
           ],
         )
@@ -108,6 +124,38 @@ class _ShinyTrackerState extends State<ShinyTracker> {
           )
         ]
     );
+  }
+
+    Future<void> _foundHandler() {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Add Pokemon to dex?"),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text("Cancel"),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    _found = true;
+                    Navigator.of(context).pop();
+                  },
+                  child: Text("Add"),
+                ),
+              ]
+            )
+          )
+        );
+      }
+    ).then((value) {
+      if(_found) { Navigator.of(context).pop(_found); };
+    });
   }
 
   num _determineOdds() {
